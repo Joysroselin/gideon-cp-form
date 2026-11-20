@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f3f4f6; margin: 0; padding: 16px; color: #1f2937; }
+    .card { max-width: 640px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border-top: 6px solid #1e3a8a; }
+    h2 { margin: 0 0 6px; color: #1e3a8a; font-size: 21px; }
+    p.sub { margin: 0 0 14px; font-size: 13px; color: #4b5563; line-height: 1.4; }
+    .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: #dbeafe; color: #1e40af; margin-bottom: 16px; }
+    .badge.new { background: #fef3c7; color: #92400e; }
+    .group { margin-bottom: 14px; position: relative; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #374151; }
+    label span.req { color: #dc2626; }
+    input, select, textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: #fff; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+    .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; max-height: 230px; overflow-y: auto; z-index: 99; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: none; }
+    .sug-item { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; }
+    .sug-item:hover { background: #eff6ff; }
+    .sug-title { font-weight: 600; font-size: 14px; color: #111827; }
+    .sug-sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    button { width: 100%; background: #1e3a8a; color: #fff; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+    button:disabled { background: #9ca3af; cursor: not-allowed; }
+    #status { margin-top: 16px; padding: 14px; border-radius: 8px; display: none; font-size: 14px; font-weight: 500; }
+    .hidden { display: none; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Church Presentation Details Collection Sheet</h2>
+    <p class="sub">Dearly Beloved, thank you for procuring a new Church Presentation. Type the church name below to auto-fill verified directory details, or enter a new church.</p>
+    <div id="dirBadge" class="badge">Loading Church Directory...</div>
+
+    <form id="presForm" onsubmit="handleSubmit(event)">
+      <div class="group">
+        <label>Name of the Church <span class="req">*</span></label>
+        <input type="text" id="churchName" required autocomplete="off" placeholder="Type 2+ letters to search directory or enter new church...">
+        <div id="suggestions" class="suggestions"></div>
+      </div>
+
+      <div class="row">
+        <div class="group">
+          <label>Camp Name <span class="req">*</span></label>
+          <select id="campName" required><option value="">Loading Camps...</option></select>
+        </div>
+        <div class="group">
+          <label>Date of Presentation <span class="req">*</span></label>
+          <input type="date" id="presDate" required>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="group">
+          <label>Denomination <span class="req">*</span></label>
+          <select id="denomination" required onchange="toggleOther('denomination', 'denomOther')">
+            <option value="CSI">CSI</option>
+            <option value="AG">AG</option>
+            <option value="Baptist">Baptist</option>
+            <option value="ECI">ECI</option>
+            <option value="Independent" selected>Independent</option>
+            <option value="Luthern">Luthern</option>
+            <option value="Methodist">Methodist</option>
+            <option value="Acts">Acts</option>
+            <option value="IPC">IPC</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="text" id="denomOther" class="hidden" placeholder="Enter Denomination">
+        </div>
+        <div class="group">
+          <label>Pincode <span class="req">*</span></label>
+          <input type="text" id="pincode" required placeholder="e.g. 560066">
+        </div>
+      </div>
+
+      <div class="group">
+        <label>Church Address <span class="req">*</span></label>
+        <input type="text" id="address" required placeholder="Street / Locality / City">
+      </div>
+      <div class="row">
+        <div class="group"><label>Church Area</label><input type="text" id="area"></div>
+        <div class="group"><label>Landmark</label><input type="text" id="landmark"></div>
+      </div>
+
+      <div class="row">
+        <div class="group"><label>Pastor Prefix <span class="req">*</span></label><input type="text" id="pastorPrefix" value="Pastor" required></div>
+        <div class="group"><label>Pastor Name <span class="req">*</span></label><input type="text" id="pastorName" required></div>
+      </div>
+
+      <div class="row">
+        <div class="group"><label>Pastor Contact Number <span class="req">*</span></label><input type="tel" id="pastorPhone" required placeholder="e.g. 9845012345"></div>
+        <div class="group"><label>Alternate Number & Name</label><input type="text" id="altContact"></div>
+      </div>
+
+      <div class="group"><label>Pastor Mail ID</label><input type="email" id="pastorEmail"></div>
+
+      <div class="row">
+        <div class="group">
+          <label>Service Language - Primary <span class="req">*</span></label>
+          <select id="primaryLang" required>
+            <option value="Tamil">Tamil</option>
+            <option value="Kannada">Kannada</option>
+            <option value="English" selected>English</option>
+            <option value="Telugu">Telugu</option>
+            <option value="Malayalam">Malayalam</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Nepali">Nepali</option>
+          </select>
+        </div>
+        <div class="group">
+          <label>Translation Available</label>
+          <select id="translationAvail"><option value="No">No</option><option value="Yes">Yes</option></select>
+        </div>
+      </div>
+
+      <div class="group">
+        <label>Service Language - Secondary</label>
+        <select id="secondaryLang">
+          <option value="">None</option>
+          <option value="Kannada">Kannada</option>
+          <option value="Tamil">Tamil</option>
+          <option value="English">English</option>
+          <option value="Telugu">Telugu</option>
+          <option value="Malayalam">Malayalam</option>
+          <option value="Hindi">Hindi</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="group"><label>Service Start Time <span class="req">*</span></label><input type="time" id="startTime" value="10:00" required></div>
+        <div class="group"><label>Service End Time <span class="req">*</span></label><input type="time" id="endTime" value="12:00" required></div>
+      </div>
+
+      <div class="row">
+        <div class="group"><label>LCD Projector</label><select id="lcdProjector"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+        <div class="group"><label>Sermon Required <span class="req">*</span></label><select id="sermonRequired" required><option value="Yes">Yes</option><option value="No">No</option></select></div>
+      </div>
+
+      <div class="row">
+        <div class="group"><label>Duration for Sermon & Presentation <span class="req">*</span></label><input type="text" id="duration" value="40 mins" required></div>
+        <div class="group">
+          <label>Offering Type <span class="req">*</span></label>
+          <select id="offeringType" required>
+            <option value="Main Offering">Main Offering</option>
+            <option value="Retiring Offering">Retiring Offering</option>
+            <option value="No Offering">No Offering</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="group"><label>Congregation Size <span class="req">*</span></label><input type="number" id="congregationSize" value="100" required></div>
+        <div class="group"><label>Expected Offering</label><input type="number" id="expectedOffering"></div>
+      </div>
+
+      <div class="row">
+        <div class="group">
+          <label>CP Procured By <span class="req">*</span></label>
+          <select id="procuredBy" required onchange="toggleOther('procuredBy', 'procuredOther')">
+            <option value="Anand Katawati">Anand Katawati</option>
+            <option value="Jason Paul">Jason Paul</option>
+            <option value="Anthony David">Anthony David</option>
+            <option value="Aniyappan Achari">Aniyappan Achari</option>
+            <option value="Roger Milton">Roger Milton</option>
+            <option value="Joel Blesson">Joel Blesson</option>
+            <option value="Baskaran DWP">Baskaran DWP</option>
+            <option value="Ashok Kumar">Ashok Kumar</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="text" id="procuredOther" class="hidden" placeholder="Enter Brother Name">
+        </div>
+        <div class="group">
+          <label>CP Procured By Contact <span class="req">*</span></label>
+          <input type="tel" id="procuredByContact" required placeholder="e.g. 9845012345">
+        </div>
+      </div>
+
+      <div class="group">
+        <label>Mode of Procurement</label>
+        <select id="procurementMode" onchange="toggleOther('procurementMode', 'modeOther')">
+          <option value="In Person Metting with Pastor">In Person Metting with Pastor</option>
+          <option value="Over Telephonic Conversation with pastor">Over Telephonic Conversation with pastor</option>
+          <option value="Through Friend">Through Friend</option>
+          <option value="Through Google Searcch">Through Google Searcch</option>
+          <option value="Through PAB contact">Through PAB contact</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="modeOther" class="hidden" placeholder="Enter Mode of Procurement">
+      </div>
+
+      <div class="group"><label>Comments</label><textarea id="comments" rows="2"></textarea></div>
+
+      <button type="submit" id="submitBtn">Submit Church Presentation</button>
+    </form>
+    <div id="status"></div>
+  </div>
+    <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxuJtvSgKGRfmZQyBZftKY78mjT8pXMBsBQEeNOd9lq_oTXBWyawIu2Q6TKV1-U6Dqe/exec";
+    let directory = [];
+    const badge = document.getElementById('dirBadge');
+    const churchInput = document.getElementById('churchName');
+    const sugBox = document.getElementById('suggestions');
+    const campSelect = document.getElementById('campName');
+
+    function toggleOther(selId, inputId) {
+      const show = document.getElementById(selId).value === 'Other';
+      const el = document.getElementById(inputId);
+      el.style.display = show ? 'block' : 'none';
+      el.required = show;
+    }
+
+    fetch(API_URL + "?action=boot")
+      .then(r => r.json())
+      .then(data => {
+        directory = (data && data.churches) ? data.churches : [];
+        const camps = (data && data.camps) ? data.camps : [];
+        campSelect.innerHTML = '<option value="">-- Select Camp --</option>' +
+          camps.map(c => `<option value="${c}">${c}</option>`).join('');
+        badge.textContent = `Directory Ready (${directory.length} Verified Churches)`;
+      })
+      .catch(() => {
+        badge.className = 'badge new';
+        badge.textContent = 'Offline/Manual Mode — Enter details below';
+      });
+
+    churchInput.addEventListener('input', () => {
+      const q = churchInput.value.trim().toLowerCase();
+      sugBox.innerHTML = '';
+      if (q.length < 2) { sugBox.style.display = 'none'; return; }
+
+      const matches = directory.filter(c => c.church.toLowerCase().includes(q)).slice(0, 8);
+      if (matches.length === 0) {
+        sugBox.style.display = 'none';
+        badge.className = 'badge new';
+        badge.textContent = 'New Church — Will auto-add to Directory on submit';
+        return;
+      }
+
+      matches.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'sug-item';
+        div.innerHTML = `<div class="sug-title">${item.church}</div><div class="sug-sub">${item.camp || 'No Camp'} • ${item.pastor || 'Pastor'} • ${item.pin || ''}</div>`;
+        div.onclick = () => selectChurch(item);
+        sugBox.appendChild(div);
+      });
+      sugBox.style.display = 'block';
+    });
+
+    function selectChurch(c) {
+      churchInput.value = c.church;
+      if (c.camp) {
+        if (!Array.from(campSelect.options).some(o => o.value === c.camp)) {
+          campSelect.add(new Option(c.camp, c.camp));
+        }
+        campSelect.value = c.camp;
+      }
+      if (c.denom) {
+        const dSel = document.getElementById('denomination');
+        if (Array.from(dSel.options).some(o => o.value === c.denom)) {
+          dSel.value = c.denom;
+          toggleOther('denomination', 'denomOther');
+        } else {
+          dSel.value = 'Other';
+          toggleOther('denomination', 'denomOther');
+          document.getElementById('denomOther').value = c.denom;
+        }
+      }
+      if (c.addr) document.getElementById('address').value = c.addr;
+      if (c.pin) document.getElementById('pincode').value = c.pin;
+      if (c.pastor) document.getElementById('pastorName').value = c.pastor;
+      if (c.phone) document.getElementById('pastorPhone').value = c.phone;
+      if (c.alt) document.getElementById('altContact').value = c.alt;
+      if (c.email) document.getElementById('pastorEmail').value = c.email;
+      if (c.lang) document.getElementById('primaryLang').value = c.lang;
+
+      sugBox.style.display = 'none';
+      badge.className = 'badge';
+      badge.textContent = 'Matched Verified Church from Directory';
+    }
+
+    document.addEventListener('click', e => { if (!e.target.closest('.group')) sugBox.style.display = 'none'; });
+
+    function getValOrOther(selId, otherId) {
+      const v = document.getElementById(selId).value;
+      return v === 'Other' ? document.getElementById(otherId).value : v;
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const st = document.getElementById('status');
+      btn.disabled = true;
+      btn.textContent = 'Submitting & Triggering Alerts...';
+
+      const payload = {
+        churchName: churchInput.value,
+        campName: campSelect.value,
+        presDate: document.getElementById('presDate').value,
+        denomination: getValOrOther('denomination', 'denomOther'),
+        pincode: document.getElementById('pincode').value,
+        address: document.getElementById('address').value,
+        area: document.getElementById('area').value,
+        landmark: document.getElementById('landmark').value,
+        pastorPrefix: document.getElementById('pastorPrefix').value,
+        pastorName: document.getElementById('pastorName').value,
+        pastorPhone: document.getElementById('pastorPhone').value,
+        altContact: document.getElementById('altContact').value,
+        pastorEmail: document.getElementById('pastorEmail').value,
+        primaryLang: document.getElementById('primaryLang').value,
+        translationAvail: document.getElementById('translationAvail').value,
+        secondaryLang: document.getElementById('secondaryLang').value,
+        startTime: document.getElementById('startTime').value,
+        endTime: document.getElementById('endTime').value,
+        lcdProjector: document.getElementById('lcdProjector').value,
+        sermonRequired: document.getElementById('sermonRequired').value,
+        duration: document.getElementById('duration').value,
+        offeringType: document.getElementById('offeringType').value,
+        congregationSize: document.getElementById('congregationSize').value,
+        expectedOffering: document.getElementById('expectedOffering').value,
+        procuredBy: getValOrOther('procuredBy', 'procuredOther'),
+        procuredByContact: document.getElementById('procuredByContact').value,
+        procurementMode: getValOrOther('procurementMode', 'modeOther'),
+        comments: document.getElementById('comments').value
+      };
+
+      fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+        .then(r => r.json())
+        .then(res => {
+          if (!res.ok) throw new Error(res.error || "Submission failed");
+          st.style.display = 'block';
+          st.style.background = '#dcfce7';
+          st.style.color = '#166534';
+          st.textContent = `Submitted! Booking ID: ${res.id} (Row ${res.row}). Stage 0 WhatsApp alerts triggered.`;
+          btn.disabled = false;
+          btn.textContent = 'Submit Another Request';
+          document.getElementById('presForm').reset();
+        })
+        .catch(err => {
+          st.style.display = 'block';
+          st.style.background = '#fee2e2';
+          st.style.color = '#991b1b';
+          st.textContent = 'Error: ' + err.message;
+          btn.disabled = false;
+          btn.textContent = 'Submit Church Presentation';
+        });
+    }
+  </script>
+</body>
+</html>
