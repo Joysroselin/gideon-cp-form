@@ -323,12 +323,9 @@
         procurementMode: getValOrOther('procurementMode', 'modeOther'),
         comments: document.getElementById('comments').value
       };
+      const submitUrl = API_URL + "?action=submit&data=" + encodeURIComponent(JSON.stringify(payload));
 
-      fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      })
+      fetch(submitUrl)
         .then(r => r.json())
         .then(res => {
           if (!res.ok) throw new Error(res.error || "Submission failed");
