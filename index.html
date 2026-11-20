@@ -292,7 +292,13 @@
       const st = document.getElementById('status');
       btn.disabled = true;
       btn.textContent = 'Submitting & Triggering Alerts...';
-
+      const norm91 = (v) => {
+        const d = String(v || "").replace(/\D/g, "");
+        if (!d) return "";
+        if (d.length === 10) return "91" + d;
+        if (d.length === 11 && d.startsWith("0")) return "91" + d.slice(1);
+        return d;
+      };
       const payload = {
         churchName: churchInput.value,
         campName: campSelect.value,
@@ -304,8 +310,8 @@
         landmark: document.getElementById('landmark').value,
         pastorPrefix: document.getElementById('pastorPrefix').value,
         pastorName: document.getElementById('pastorName').value,
-        pastorPhone: document.getElementById('pastorPhone').value,
-        altContact: document.getElementById('altContact').value,
+        pastorPhone: norm91(document.getElementById('pastorPhone').value),
+        altContact: norm91(document.getElementById('altContact').value),
         pastorEmail: document.getElementById('pastorEmail').value,
         primaryLang: document.getElementById('primaryLang').value,
         translationAvail: document.getElementById('translationAvail').value,
@@ -319,7 +325,7 @@
         congregationSize: document.getElementById('congregationSize').value,
         expectedOffering: document.getElementById('expectedOffering').value,
         procuredBy: getValOrOther('procuredBy', 'procuredOther'),
-        procuredByContact: document.getElementById('procuredByContact').value,
+        procuredByContact: norm91(document.getElementById('procuredByContact').value),
         procurementMode: getValOrOther('procurementMode', 'modeOther'),
         comments: document.getElementById('comments').value
       };
